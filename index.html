@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="description" content="Steepest Descent Density Control for Compact 3D Gaussian Splatting">
+<meta name="keywords" content="Steepest Descent, 3DGS, 3D Gaussian Splatting, Radiance Fields, Compact">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+<title>Steepest Descent Density Control for Compact 3D Gaussian Splatting</title>
+
+<link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+
+<link rel="stylesheet" href="./static/css/bulma.min.css">
+<link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+<link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+<link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+<link rel="stylesheet" href="./static/css/index.css">
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script defer src="./static/js/fontawesome.all.min.js"></script>
+<script src="./static/js/bulma-carousel.min.js"></script>
+<script src="./static/js/bulma-slider.min.js"></script>
+<script src="./static/js/video_comparison.js"></script>
+
+<!-- custom additional scripts -->
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script>
+    MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            macros: {
+                Mat: "\\boldsymbol",
+                cL: "\\mathcal{L}",
+                nat: "\\mathbb{N}"
+            }
+        },
+        svg: {
+            fontCache: 'global'
+        }
+    };
+</script>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+<!-- swiper -->
+<!-- https://swiperjs.com/demos -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+
+<link rel="image_src" href="./media/illustration_steepest.png" />
+
+<style>
+/* Container: horizontal layout by default */
+.method_container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px; /* spacing between items */
+    /* padding: 20px; */
+}
+
+/* Ensure the image is responsive */
+.method_container img {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    flex-shrink: 0;
+}
+
+/* On small screens, switch to vertical layout */
+@media (max-width: 600px) {
+    .method_container {
+        flex-direction: column;
+        /* align-items: flex-start; */
+        align-items: center;
+    }
+    
+    /* Adjust spacing for vertical stacking */
+    .method_container img {
+        margin-bottom: 10px;
+        max-width: 500px;
+    }
+}
+</style>
+
+<style>
+.button-container_teaser {
+    display: flex;       
+    justify-content: center; 
+    align-items: center;
+}
+
+.glow-button {
+    position: relative;
+    display: inline-block;
+    padding: 2px;
+    border-radius: 10px;
+    z-index: 0;
+    margin-bottom: 15px;
+}
+
+.glow-button button {
+    background: transparent; 
+    border: none; 
+    color: white; 
+    padding: 5px 10px; 
+    font-size: 16px; 
+    border-radius: 10px; 
+    cursor: pointer; 
+    outline: none; 
+}
+
+.glow-button:before {
+    content: "";
+    background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    background-size: 400%;
+    z-index: -1;
+    filter: blur(5px);
+    -webkit-filter: blur(5px);
+    width: calc(100% + 4px);
+    height: calc(100% + 4px);
+    animation: glowing-button-85 20s linear infinite;
+    transition: opacity 0.3s ease-in-out;
+    border-radius: 10px;
+}
+
+@keyframes glowing-button-85 {
+    0% { background-position: 0 0; }
+    50% { background-position: 400% 0; }
+    100% { background-position: 0 0; }
+}
+
+.glow-button:after {
+    z-index: -1;
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: #222;
+    left: 0;
+    top: 0;
+    border-radius: 10px;
+}
+</style>
+
+<style>
+.gradient-text {
+    background: linear-gradient(45deg, #bc4e9c, #f80759);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    display: inline-block;
+    font-weight: bold;
+}
+</style>
+
+<style>
+.container_teaser {
+    display: flex; /* Enables Flexbox */
+    justify-content: center; /* Horizontally centers the content */
+    align-items: center; /* Vertically centers the content */
+    height: 100%; /* Set the height of the container */
+}
+
+.column_teaser {
+    flex: 0 0 auto; /* This ensures that the column doesn't grow or shrink */
+    width: 100%; /* Adjust this width as needed */
+    max-width: 800px; /* Adjust this max-width as needed */
+    margin: 0 auto; /* Centers the column within the container */
+}
+</style>
+
+<style>
+.author-block {
+    margin-right: 10px;
+}
+
+.univerity-block {
+    margin-right: 14px;
+}
+</style>
+
+</head>
+<body>
+
+<section class="hero">
+  <div class="hero-body" style="background-color: #f0f0f0;">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <!-- <h1 class="title is-1 publication-title">Feature 3DGS: Supercharging 3D Gaussian Splatting to Enable Distilled Feature Fields</h1> -->
+          <!-- <h1 class="title is-1 publication-title">Feature 3DGS 🪄</h1> -->
+          <h1 class="title is-2 publication-title">
+            Steepest Descent Density Control for Compact 3D Gaussian Splatting
+          </h1>
+            <div class="is-size-5 publication-authors">
+              <span class="author-block">
+                <a href="https://peihaowang.github.io/">Peihao Wang</a><sup>1*&dagger;</sup>,</span>
+              <span class="author-block">
+                <a href="https://yuehaolab.com/">Yuehao Wang</a><sup>1*</sup>,</span>
+              <span class="author-block">
+                <a href="https://wdilin.github.io/">Dilin Wang</a><sup>2</sup>,</span>
+              <span class="author-block">
+                <a href="https://scholar.google.com/citations?user=jaobZDsAAAAJ">Sreyas Mohan</a><sup>2</sup>,</span>
+              <span class="author-block"> 
+                <a href="https://zhiwenfan.github.io/">Zhiwen Fan</a><sup>1</sup>,</span>  <br>
+              <span class="author-block"> 
+                <a href="https://sites.google.com/view/lemeng-wu/home">Lemeng Wu</a><sup>2</sup>,</span>
+              <span class="author-block">
+                <a href="https://cairuisi.github.io/">Ruisi Cai</a><sup>1</sup>,</span>
+              <span class="author-block">   
+                <a href="https://yuyingyeh.github.io/">Yu-Ying Yeh</a><sup>2</sup>,</span>
+              <span class="author-block"> 
+                <a href="https://www.ece.utexas.edu/people/faculty/atlas-wang">Zhangyang Wang</a><sup>1</sup>,</span>
+              <span class="author-block"> 
+                  <a href="https://www.cs.utexas.edu/~lqiang/">Qiang Liu</a><sup>1</sup>,</span>
+              <span class="author-block"> 
+                  <a href="https://scholar.google.co.in/citations?hl=en&user=8KF99lYAAAAJ">Rakesh Ranjan</a><sup>2</sup>,</span>
+            </div>
+
+            <div class="is-size-5 publication-authors">
+                <span class="univerity-block"><sup>1</sup>The University of Texas at Austin</span>
+                <span class="univerity-block"><sup>2</sup>Meta Reality Labs</span>
+            </div>
+
+            <div class="is-size-6 publication-authors">
+                <span class="author-block">* Equal contribution. &dagger; Work done during an internship with Meta Reality Labs.</span>
+            </div>
+
+            <div class="is-size-5 publication-authors" style="margin-top: 15px; margin-bottom: 15px;">
+                <span class="univerity-block" style="color: rgb(16, 72, 169);">CVPR 2025</span>
+            </div>
+
+            <div class="column has-text-centered">
+                <div class="publication-links">
+                <!-- PDF Link. -->
+                <span class="link-block">
+                    <a href=""
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                        <i class="fas fa-file-pdf"></i>
+                    </span>
+                    <span>Paper</span>
+                    </a>
+                </span>
+                <!-- Code Link. -->
+                <span class="link-block">
+                    <a href=""
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                        <i class="fab fa-github"></i>
+                    </span>
+                    <span>Code</span>
+                    </a>
+                </span>
+                </div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            3D Gaussian Splatting (3DGS) has emerged as a powerful technique for real-time, high-resolution novel view synthesis.
+            By representing scenes as a mixture of Gaussian primitives, 3DGS leverages GPU rasterization pipelines for efficient rendering and reconstruction.
+            To optimize scene coverage and capture fine details, 3DGS employs a densification algorithm to generate additional points.
+            However, this process often leads to redundant point clouds, resulting in excessive memory usage, slower performance, and substantial storage demands--posing significant challenges for deployment on resource-constrained devices.
+            To address this limitation, we propose a theoretical framework that demystifies and improves density control in 3DGS.
+            Our analysis reveals that splitting is crucial for escaping saddle points.
+            Through an optimization-theoretic approach, we establish the necessary conditions for densification, determine the minimal number of offspring Gaussians, identify the optimal parameter update direction, and provide an analytical solution for normalizing off-spring opacity.
+            Building on these insights, we introduce <b>SteepGS</b>, incorporating <i>steepest density control</i>, a principled strategy that minimizes loss while maintaining a compact point cloud. SteepGS achieves a ~50% reduction in Gaussian points without compromising rendering quality, significantly enhancing both efficiency and scalability.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="section">
+    <div class="container is-max-desktop" style="max-width: 900px;">
+        <h2 class="title is-3 has-text-centered">Introduction</h2>
+        <div class="content has-text-justified">
+          <div>
+            3D Gaussian Splatting (3DGS) has emerged as a powerful method for reconstructing 3D scenes and rendering them from arbitrary viewpoints.
+            At the heart of 3DGS lies a customized optimization algorithm. Beyond gradient-based updates to the Gaussian parameters, density control plays a critical role in growing a sparse point cloud into a dense Gaussian mixture that accurately represents the scene.
+            While the current heuristic-based approach performs reasonably well, fundamental questions remain unanswered: <b>why, when, and how should Gaussians be split?</b> In this work, we provide clear and affirmative answers to these questions.
+          </div>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container is-max-desktop" style="max-width: 900px;">
+        <h2 class="title is-3 has-text-centered">Method overview</h2>
+        <div class="content has-text-justified method_container">
+          <div>
+            <b>TL;DR</b> We theoretically investigate density control in 3DGS. As training via gradient descent progresses, many Gaussian primitives are observed to become stationary while failing to reconstruct the regions they cover.
+            From an optimization-theoretic perspective, we reveal that these primitives are trapped in saddle points, the regions in the loss landscape where <span style="color: #002bff;">gradients</span> are insufficient to further reduce loss, leaving parameters sub-optimal locally.
+            To address this, our <b>SteepGS</b> efficiently identifies Gaussian points located in saddle area, splits them into two off-springs, and displaces new primitives along the <span style="color: #f80759;">steepest descent directions</span>.
+            This restores the effectiveness of successive gradient-based updates by escaping the saddle area. The figure on the right demonstrates this process.
+          </div>
+          <img src="./media/illustration_steepest.png" />
+        </div>
+        <div class="content has-text-justified">
+            To fully understand the underlying mechanism, we begin with a simple mathematical setup. Suppose the scene is represented by a single Gaussian function, $\theta = (p, \Sigma, o)$—omitting color for simplicity—defined as $\sigma(x; \theta) = o \exp\left(-\frac{1}{2}(x - p)^\top \Sigma (x - p)\right)$. We consider splitting this Gaussian into $m$ offspring, where each offspring is assigned new parameters $\vartheta_j$ and a scaled opacity $w_j$, for $j = 1, \dots, m$. Let $\mathcal{L}(\theta)$ and $\mathcal{L}(\vartheta, w)$ denote the photometric loss before and after splitting, respectively. The following approximation characterizes the impact of densification:
+            $$
+            \mathcal{L}(\vartheta, w) \approx \underbrace{\mathcal{L}(\theta) + \nabla \mathcal{L}(\theta)^\top \mu + \frac{1}{2} \mu^\top \nabla^2 \mathcal{L}(\theta) \mu}_{\Gamma} + \underbrace{\frac{1}{2} \sum_{j=1}^{m} w_j \delta_j^\top S(\theta) \delta_j}_{\Delta},
+            $$
+            where $\mu = \sum_j w_j \vartheta_j - \theta$ is the mean displacement of the offspring, $\delta_j = \vartheta_j - \theta - \mu$ is the deviation of each offspring from the mean, and $S(\theta)$—the splitting matrix—quantifies how much loss can be reduced by densifying:
+            $$
+            S(\theta) = \mathbb{E}_{x} \left[\frac{\partial \mathcal{L}}{\partial \sigma(x; \theta)} \nabla^2_{\theta} \sigma(x; \theta) \right].
+            $$
+            To minimize the loss after splitting, we identify an optimal descent direction:
+            <ul style="margin-bottom: 20px;">
+                <li><b>Why to split Gaussian?</b> The term $\Gamma$ can be optimized via gradient descent. However, when a Gaussian becomes trapped in a saddle point, gradients alone may provide no effective update. In contrast, splitting introduces the additional term $\Delta$, which can decrease the loss and steer the parameters away from the saddle.</li>
+                <li><b>When to split Gaussian?</b> For splitting to effectively reduce the loss, the term $\Delta$ must be negative. A necessary condition for this is that $S(\theta)$ is NOT positive semi-definite; otherwise, splitting can backfire!</li>
+                <li><b>How to split Gaussian?</b> More is true. The density control strategy with steepest descent on loss can be given analytically. It turns out that setting $m = 2$ with $\delta_1 = v_{\min}(S(\theta))$ and $\delta_2 = -v_{\min}(S(\theta))$ (where $v_{\min}(S(\theta))$ is the least eigenvector of $S(\theta)$), is sufficient to achieve optimality.</li>
+            </ul>
+            These results generalize well to the multiple Gaussian scenario. Please see our paper for more details.
+        </div>
+    </div>
+</section>
+
+
+<section class="section">
+    <div class="container is-max-desktop" style="max-width: 900px;">
+        <h2 class="title is-3 has-text-centered">Comparison with 3DGS ADC</h2>
+        <div class="content has-text-justified">
+            <video class="video" width=100% id="baselinecmp" loop autoplay muted src="./media/cmp_splitting_maps.mp4" onplay="resizeAndPlay(this, 1.0)"></video>
+            <canvas style="margin-top: -10px; margin-bottom: 10px;" height=0 class="videoMerge" id="baselinecmpMerge"></canvas>
+            <p>
+                <b>Visualization of splitting points:</b> we identity the points that will be split by our method and the original 3DGS ADC.
+                We observe that SteepGS can effectively concentrate Gaussian splitting on under-fitting areas, achieving much fewer splitting points in the densification stage.
+                For more comparisons, please check out our paper.
+            </p>
+        </div>
+    </div>
+</section>
+
+
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title">BibTeX</h2>
+    <pre><code></code></pre>
+  </div>
+</section>
+
+
+<footer class="footer">
+  <div class="container">
+    <div class="content has-text-centered">
+      <a class="icon-link"
+         href="">
+        <i class="fas fa-file-pdf"></i>
+      </a>
+      <a class="icon-link" href="" class="external-link" disabled>
+        <i class="fab fa-github"></i>
+      </a>
+    </div>
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            Source code borrowed from <a
+              href="https://github.com/nerfies/nerfies.github.io">Nerfies</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+</body>
+</html>
