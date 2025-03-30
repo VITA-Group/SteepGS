@@ -220,7 +220,7 @@
               <span class="author-block"> 
                   <a href="https://www.cs.utexas.edu/~lqiang/">Qiang Liu</a><sup>1</sup>,</span>
               <span class="author-block"> 
-                  <a href="https://scholar.google.co.in/citations?hl=en&user=8KF99lYAAAAJ">Rakesh Ranjan</a><sup>2</sup>,</span>
+                  <a href="https://scholar.google.co.in/citations?hl=en&user=8KF99lYAAAAJ">Rakesh Ranjan</a><sup>2</sup></span>
             </div>
 
             <div class="is-size-5 publication-authors">
@@ -229,7 +229,7 @@
             </div>
 
             <div class="is-size-6 publication-authors">
-                <span class="author-block">* Equal contribution. &dagger; Work done during an internship with Meta Reality Labs.</span>
+                <span class="author-block">* Equal contribution.</span>
             </div>
 
             <div class="is-size-5 publication-authors" style="margin-top: 15px; margin-bottom: 15px;">
@@ -265,7 +265,7 @@
     </div>
   </div>
 </section>
-
+<!-- 
 <section class="section">
   <div class="container is-max-desktop">
     <div class="columns is-centered has-text-centered">
@@ -287,7 +287,7 @@
     </div>
   </div>
 </section>
-
+ -->
 
 <section class="section">
     <div class="container is-max-desktop" style="max-width: 900px;">
@@ -296,7 +296,14 @@
           <div>
             3D Gaussian Splatting (3DGS) has emerged as a powerful method for reconstructing 3D scenes and rendering them from arbitrary viewpoints.
             At the heart of 3DGS lies a customized optimization algorithm. Beyond gradient-based updates to the Gaussian parameters, density control plays a critical role in growing a sparse point cloud into a dense Gaussian mixture that accurately represents the scene.
-            While the current heuristic-based approach performs reasonably well, fundamental questions remain unanswered: <b>why, when, and how should Gaussians be split?</b> In this work, we provide clear and affirmative answers to these questions.
+            While the current heuristic-based approach performs reasonably well, fundamental questions <b>why, when, and how should Gaussians be split</b> remain unanswered: 
+            <ul style="margin-bottom: 20px;">
+                <li><b>Why is densification necessary?</b></li>
+                <li><b>When should densification happen?</b></li>
+                <li><b>How many offspring Gaussian is needed?</b></li>
+                <li><b>How to adjust Gaussian offspring's opacity, poisition and size?</b></li>
+            </ul>
+            In this work, we provide clear and affirmative answers to these questions.
           </div>
         </div>
     </div>
@@ -315,21 +322,24 @@
           <img src="./media/illustration_steepest.png" />
         </div>
         <div class="content has-text-justified">
-            To fully understand the underlying mechanism, we begin with a simple mathematical setup. Suppose the scene is represented by a single Gaussian function, $\theta = (p, \Sigma, o)$—omitting color for simplicity—defined as $\sigma(x; \theta) = o \exp\left(-\frac{1}{2}(x - p)^\top \Sigma (x - p)\right)$. We consider splitting this Gaussian into $m$ offspring, where each offspring is assigned new parameters $\vartheta_j$ and a scaled opacity $w_j$, for $j = 1, \dots, m$. Let $\mathcal{L}(\theta)$ and $\mathcal{L}(\vartheta, w)$ denote the photometric loss before and after splitting, respectively. The following approximation characterizes the impact of densification:
+            To fully understand the underlying mechanism, we begin with a simple mathematical setup. Suppose the scene is represented by a single Gaussian function, $\theta = (p, \Sigma, o)$ &mdash; omitting color for simplicity &mdash; defined as $\sigma(x; \theta) = o \exp\left(-\frac{1}{2}(x - p)^\top \Sigma (x - p)\right)$. We consider splitting this Gaussian into $m$ offspring, where each offspring is assigned new parameters $\vartheta = \{ \vartheta_j \}$ and a scaled opacity $w = \{ w_j \}$, for every $j = 1, \dots, m$. Our questions convert to finding the values of $m$, $w$ and $\delta$.
+        </div>
+        <div class="content has-text-justified">
+            Let $\mathcal{L}(\theta)$ and $\mathcal{L}(\vartheta, w)$ denote the photometric loss before and after splitting, respectively. First of all, we prove the following approximation to characterize the impact of densification on loss:
             $$
-            \mathcal{L}(\vartheta, w) \approx \underbrace{\mathcal{L}(\theta) + \nabla \mathcal{L}(\theta)^\top \mu + \frac{1}{2} \mu^\top \nabla^2 \mathcal{L}(\theta) \mu}_{\Gamma} + \underbrace{\frac{1}{2} \sum_{j=1}^{m} w_j \delta_j^\top S(\theta) \delta_j}_{\Delta},
+            \mathcal{L}(\vartheta, w) \approx \textcolor{blue}{\underbrace{\mathcal{L}(\theta) + \nabla \mathcal{L}(\theta)^\top \mu + \frac{1}{2} \mu^\top \nabla^2 \mathcal{L}(\theta) \mu}_{\Gamma}} + \textcolor{red}{\underbrace{\frac{1}{2} \sum_{j=1}^{m} w_j \delta_j^\top S(\theta) \delta_j}_{\Delta}},
             $$
-            where $\mu = \sum_j w_j \vartheta_j - \theta$ is the mean displacement of the offspring, $\delta_j = \vartheta_j - \theta - \mu$ is the deviation of each offspring from the mean, and $S(\theta)$—the splitting matrix—quantifies how much loss can be reduced by densifying:
+            where $\mu = \sum_j w_j \vartheta_j - \theta$ is the mean displacement of the offspring, $\delta_j = \vartheta_j - \theta - \mu$ is the deviation of each offspring from the mean, and $S(\theta)$ is named <b>splitting matrix</b>, being central to quantify the effect of splitting a Gaussian:
             $$
             S(\theta) = \mathbb{E}_{x} \left[\frac{\partial \mathcal{L}}{\partial \sigma(x; \theta)} \nabla^2_{\theta} \sigma(x; \theta) \right].
             $$
-            To minimize the loss after splitting, we identify an optimal descent direction:
+            By examining the loss after splitting $\mathcal{L}(\vartheta, w)$, we can draw the following conclusions:
             <ul style="margin-bottom: 20px;">
-                <li><b>Why to split Gaussian?</b> The term $\Gamma$ can be optimized via gradient descent. However, when a Gaussian becomes trapped in a saddle point, gradients alone may provide no effective update. In contrast, splitting introduces the additional term $\Delta$, which can decrease the loss and steer the parameters away from the saddle.</li>
-                <li><b>When to split Gaussian?</b> For splitting to effectively reduce the loss, the term $\Delta$ must be negative. A necessary condition for this is that $S(\theta)$ is NOT positive semi-definite; otherwise, splitting can backfire!</li>
-                <li><b>How to split Gaussian?</b> More is true. The density control strategy with steepest descent on loss can be given analytically. It turns out that setting $m = 2$ with $\delta_1 = v_{\min}(S(\theta))$ and $\delta_2 = -v_{\min}(S(\theta))$ (where $v_{\min}(S(\theta))$ is the least eigenvector of $S(\theta)$), is sufficient to achieve optimality.</li>
+                <li><b>Why to split Gaussian?</b> The term $\textcolor{blue}{\Gamma}$ can be optimized via gradient descent. However, when a Gaussian becomes trapped in a saddle point, gradients alone may provide no effective update. In contrast, splitting introduces the additional term $\textcolor{red}{\Delta}$, which can decrease the loss and steer the parameters away from the saddle.</li>
+                <li><b>When to split Gaussian?</b> For splitting to effectively reduce the loss, the term $\textcolor{red}{\Delta}$ must be negative. Take a closer look, $\textcolor{red}{\Delta}$ is a quadratic functon w.r.t. splitting matrix $S(\theta)$. A necessary condition for $\textcolor{red}{\Delta}$ being negative is that $S(\theta)$ must NOT be positive semi-definite; otherwise, splitting can backfire!</li>
+                <li><b>How to split Gaussian?</b> More is true. The density control strategy with steepest descent on loss can be given analytically. Based on the property of quatratic functions, setting $m = 2$ with $\delta_1 = v_{\min}(S(\theta))$ and $\delta_2 = -v_{\min}(S(\theta))$ is sufficient to achieve a minimizer of $\textcolor{red}{\Delta}$, where $v_{\min}(S(\theta))$ is the least eigenvector of splitting matrix $S(\theta)$. </li>
             </ul>
-            These results generalize well to the multiple Gaussian scenario. Please see our paper for more details.
+            All these results generalize well to the scenario with multiple Gaussians. Please see our paper for more details.
         </div>
     </div>
 </section>
@@ -354,7 +364,14 @@
 <section class="section" id="BibTeX">
   <div class="container is-max-desktop content">
     <h2 class="title">BibTeX</h2>
-    <pre><code></code></pre>
+    <pre><code>
+@inproceedings{wang2025steepgs,
+  title={Steepest Descent Density Control for Compact 3D Gaussian Splatting},
+  author={Wang, Peihao and Wang, Yuehao and Wang, Dilin and Mohan, Sreyas and Fan, Zhiwen and Wu, Lemeng and Cai, Ruisi and Yeh, Yu-Ying and Wang, Zhangyang and Liu, Qiang and Ranjan, Rakesh},
+  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
+  year={2025}
+}
+    </code></pre>
   </div>
 </section>
 
