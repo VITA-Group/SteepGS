@@ -364,8 +364,8 @@
         <div class="content has-text-justified">
             <div style="margin-top: 50px;">
                 <p>
-                <b>Visualization of splitting points:</b> we identity the points that will be split by our method and the original 3DGS ADC.
-                We observe that SteepGS can effectively concentrate Gaussian splitting on under-fitting areas, achieving much fewer splitting points in the densification stage.
+                <b>Visualization of splitting points:</b> we identify the points selected for splitting by our method and the original 3DGS ADC after 1k training steps, and highlight them in white to produce splitting maps overlaid on RGB renderings.
+                We observed that SteepGS can effectively concentrate Gaussian splitting on under-fitting areas, achieving much fewer splitting points in the densification stage.
                 This validates th effectiveness of our necessary condition for splitting.
                 </p>
             </div>
@@ -375,6 +375,7 @@
                     <li class="bulma-tab" onclick="openTab(event, 'splitmap_room')"><a href="javascript:void(0)">Room</a></li>
                     <li class="bulma-tab" onclick="openTab(event, 'splitmap_bicycle')"><a href="javascript:void(0)">Bicycle</a></li>
                     <li class="bulma-tab" onclick="openTab(event, 'splitmap_stump')"><a href="javascript:void(0)">Stump</a></li>
+                    <li class="bulma-tab" onclick="openTab(event, 'splitmap_kitchen')"><a href="javascript:void(0)">Kitchen</a></li>
                 </ul>
             </div>
             <div style="overflow: hidden; aspect-ratio: 1.5; margin-bottom: 10px;" id="tab-content">
@@ -394,7 +395,26 @@
                     <video class="video" width=100% id="splitmap_cmp_stump" loop autoplay muted src="./media/cmp_splitting_maps_stump.mp4" onplay="resizeAndPlay(this, 1.0)"></video>
                     <canvas style="margin-top: -10px; margin-bottom: 10px;" height=0 class="videoMerge" id="splitmap_cmp_stumpMerge"></canvas>
                 </div>
+                <div id="splitmap_kitchen" class="bulma-content-tab">
+                    <video class="video" width=100% id="splitmap_cmp_kitchen" loop autoplay muted src="./media/cmp_splitting_maps_kitchen.mp4" onplay="resizeAndPlay(this, 1.0)"></video>
+                    <canvas style="margin-top: -10px; margin-bottom: 10px;" height=0 class="videoMerge" id="splitmap_cmp_kitchenMerge"></canvas>
+                </div>
             </div>
+        </div>
+    </div>
+</section>
+
+
+<section class="section">
+    <div class="container is-max-desktop" style="max-width: 900px;">
+        <h2 class="title is-3 has-text-centered">Comparisons</h2>
+        <div class="content has-text-justified">
+          <div>
+            We present comparisons between our SteepGS and other densification baselines on two <a href="http://visual.cs.ucl.ac.uk/pubs/deepblending/" target="_blank">Deep Blending</a> scenes. For each case, the first row shows the rendered view along with the final number of Gaussians used to represent the scene, while the second row visualizes the per-pixel error relative to the ground truth.
+          </div>
+          <div style="margin-top: 30px;">
+            <img src="./media/vis_res.png" />
+          </div>
         </div>
     </div>
 </section>
