@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="./static/css/bulma.min.css">
 <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
 <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+<link rel="stylesheet" href="./static/css/bulma-tabs.css">
 <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
 <link rel="stylesheet" href="./static/css/index.css">
@@ -41,6 +42,20 @@
             fontCache: 'global'
         }
     };
+
+    function openTab(evt, tabName) {
+        var i, x, tablinks;
+        x = document.getElementsByClassName("bulma-content-tab");
+        for (i = 0; i < x.length; i++) {
+            x[i].style.display = "none";
+        }
+        tablinks = document.getElementsByClassName("bulma-tab");
+        for (i = 0; i < x.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" is-active", "");
+        }
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.className += " is-active";
+    }
 </script>
 <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 
@@ -193,8 +208,6 @@
     <div class="container is-max-desktop">
       <div class="columns is-centered">
         <div class="column has-text-centered">
-          <!-- <h1 class="title is-1 publication-title">Feature 3DGS: Supercharging 3D Gaussian Splatting to Enable Distilled Feature Fields</h1> -->
-          <!-- <h1 class="title is-1 publication-title">Feature 3DGS 🪄</h1> -->
           <h1 class="title is-2 publication-title">
             Steepest Descent Density Control for Compact 3D Gaussian Splatting
           </h1>
@@ -347,15 +360,41 @@
 
 <section class="section">
     <div class="container is-max-desktop" style="max-width: 900px;">
-        <h2 class="title is-3 has-text-centered">Comparison with 3DGS ADC</h2>
+        <h2 class="title is-3 has-text-centered">Splitting map visualization</h2>
         <div class="content has-text-justified">
-            <video class="video" width=100% id="baselinecmp" loop autoplay muted src="./media/cmp_splitting_maps.mp4" onplay="resizeAndPlay(this, 1.0)"></video>
-            <canvas style="margin-top: -10px; margin-bottom: 10px;" height=0 class="videoMerge" id="baselinecmpMerge"></canvas>
-            <p>
+            <div style="margin-top: 50px;">
+                <p>
                 <b>Visualization of splitting points:</b> we identity the points that will be split by our method and the original 3DGS ADC.
                 We observe that SteepGS can effectively concentrate Gaussian splitting on under-fitting areas, achieving much fewer splitting points in the densification stage.
-                For more comparisons, please check out our paper.
-            </p>
+                This validates th effectiveness of our necessary condition for splitting.
+                </p>
+            </div>
+            <div class="bulma-tabs" style="margin-bottom: 0px; padding-bottom: 0px; margin-top: 30px; font-size: 15px;">
+                <ul>
+                    <li class="bulma-tab is-active" onclick="openTab(event, 'splitmap_garden')"><a href="javascript:void(0)">Garden</a></li>
+                    <li class="bulma-tab" onclick="openTab(event, 'splitmap_room')"><a href="javascript:void(0)">Room</a></li>
+                    <li class="bulma-tab" onclick="openTab(event, 'splitmap_bicycle')"><a href="javascript:void(0)">Bicycle</a></li>
+                    <li class="bulma-tab" onclick="openTab(event, 'splitmap_stump')"><a href="javascript:void(0)">Stump</a></li>
+                </ul>
+            </div>
+            <div style="overflow: hidden; aspect-ratio: 1.5; margin-bottom: 10px;" id="tab-content">
+                <div id="splitmap_garden" class="bulma-content-tab">
+                    <video class="video" width=100% id="splitmap_cmp_garden" loop autoplay muted src="./media/cmp_splitting_maps_garden.mp4" onplay="resizeAndPlay(this, 1.0)"></video>
+                    <canvas style="margin-top: -10px; margin-bottom: 10px;" height=0 class="videoMerge" id="splitmap_cmp_gardenMerge"></canvas>
+                </div>
+                <div id="splitmap_room" class="bulma-content-tab">
+                    <video class="video" width=100% id="splitmap_cmp_room" loop autoplay muted src="./media/cmp_splitting_maps_room.mp4" onplay="resizeAndPlay(this, 1.0)"></video>
+                    <canvas style="margin-top: -10px; margin-bottom: 10px;" height=0 class="videoMerge" id="splitmap_cmp_roomMerge"></canvas>
+                </div>
+                <div id="splitmap_bicycle" class="bulma-content-tab">
+                    <video class="video" width=100% id="splitmap_cmp_bicycle" loop autoplay muted src="./media/cmp_splitting_maps_bicycle.mp4" onplay="resizeAndPlay(this, 1.0)"></video>
+                    <canvas style="margin-top: -10px; margin-bottom: 10px;" height=0 class="videoMerge" id="splitmap_cmp_bicycleMerge"></canvas>
+                </div>
+                <div id="splitmap_stump" class="bulma-content-tab">
+                    <video class="video" width=100% id="splitmap_cmp_stump" loop autoplay muted src="./media/cmp_splitting_maps_stump.mp4" onplay="resizeAndPlay(this, 1.0)"></video>
+                    <canvas style="margin-top: -10px; margin-bottom: 10px;" height=0 class="videoMerge" id="splitmap_cmp_stumpMerge"></canvas>
+                </div>
+            </div>
         </div>
     </div>
 </section>
