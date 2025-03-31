@@ -328,8 +328,8 @@
         <div class="content has-text-justified method_container">
           <div>
             <b>TL;DR</b> We theoretically investigate density control in 3DGS. As training via gradient descent progresses, many Gaussian primitives are observed to become stationary while failing to reconstruct the regions they cover.
-            From an optimization-theoretic perspective, we reveal that these primitives are trapped in saddle points, the regions in the loss landscape where <span style="color: #002bff;">gradients</span> are insufficient to further reduce loss, leaving parameters sub-optimal locally.
-            To address this, our <b>SteepGS</b> efficiently identifies Gaussian points located in saddle area, splits them into two off-springs, and displaces new primitives along the <span style="color: #f80759;">steepest descent directions</span>.
+            From an optimization-theoretic perspective, we reveal that these primitives are trapped in saddle points, the regions in the loss landscape where <span style="color: blue;">gradients</span> are insufficient to further reduce loss, leaving parameters sub-optimal locally.
+            To address this, our <b>SteepGS</b> efficiently identifies Gaussian points located in saddle area, splits them into two off-springs, and displaces new primitives along the <span style="color: red;">steepest descent directions</span>.
             This restores the effectiveness of successive gradient-based updates by escaping the saddle area. The figure on the right demonstrates this process.
           </div>
           <img src="./media/illustration_steepest.png" />
